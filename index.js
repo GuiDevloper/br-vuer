@@ -37,20 +37,35 @@ Gostei da sua mensagem: ${comment.body}
       })
       */
 
-      if (comment.body.includes('/ListaIssues')) {
+      if (comment.body.includes('/CriaIssues')) {
         const repo = repository.full_name.split('/');
+        const repoData = { owner: repo[0], repo: repo[1] }
         let issues = await context.github.issues.listForRepo({
           owner: repo[0], repo: repo[1]
         })
-        issues = issues.data.reduce((prev, issue) => (
-          prev + `id: ${issue.number}, title: ${issue.title}\n`
-        ), '')
+        issues = issues.data.reduce((prev, issue) => ([
+          ...prev,
+          { id: issue.number, title: issue.title }
+        ]), [])
+
+        const path = comment.body.split('/CriaIssues')[1].split(' ')[1]
         let files = await context.github.repos.getContent({
-          owner: repo[0], repo: repo[1],
-          path: 'src/guide'
+          ...repoData,
+          path: 'src/' + (path || 'guide')
         })
-        files = files.data.map(file => file.path)
-        app.log.info(files);
+        files = files.data.map(file => file.path.split('src/')[1]).slice(0, 2)
+        for (let file of files) {
+          const hasIssue = issues.find(issue => issue.title.includes(file))
+          if (!hasIssue) {
+            await context.github.issues.create({
+              ...repoData,
+              title: `Traduzir "${file}"`,
+              labels: ['documentation', 'help wanted'],
+              body: `Link para arquivo: [${file.split('.md')[0]}](https://github.com/${repo[0]}/${repo[1]}/blob/master/src/${file})`
+            })
+          }
+        }
+        app.log.info(files)
 
         return context.github.issues.createComment(
           context.issue({
