@@ -45,14 +45,17 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
           { id: issue.number, title: issue.title }
         ]), [])
 
-        const path = comment.body.split('/CriaIssues')[1]
+        let path = comment.body.split('/CriaIssues')[1]
           .replace('\n', ' ')
           .split(' ')[1]
+        path = `src/${path || 'guide'}`
+        app.log.info(path)
+
         let files = await context.github.repos.getContent({
-          ...repoData,
-          path: `src/${path || 'guide'}`
+          ...repoData, path
         })
         files = files.data.map(file => file.path.split('src/')[1])[0]
+
         for (let file of files) {
           const hasIssue = issues.find(issue => issue.title.includes(file))
           if (!hasIssue) {
