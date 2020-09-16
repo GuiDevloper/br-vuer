@@ -45,7 +45,9 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
           { id: issue.number, title: issue.title }
         ]), [])
 
-        const path = comment.body.split('/CriaIssues')[1].split(' ')[1]
+        const path = comment.body.split('/CriaIssues')[1]
+          .replace('\n', ' ')
+          .split(' ')[1]
         let files = await context.github.repos.getContent({
           ...repoData,
           path: 'src/' + (path || 'guide')
