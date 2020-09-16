@@ -10,21 +10,25 @@ module.exports = app => {
     const issueComment = context.issue({
       body: `
 Agradecemos por ter aberto esta issue!
-Recomendo a leitura de nosso guia de conduta e bem vindo :)
+Recomendo a leitura de nosso guia de conduta e seja bem vindo :)
       `
     })
     return context.github.issues.createComment(issueComment)
   })
 
   app.on('issue_comment', async context => {
-    const { comment, repository } = context.payload
+    const { action, comment, repository } = context.payload
     const associations = [
       'OWNER',
       'MEMBER',
       'COLLABORATOR'
     ]
 
-    if (associations.includes(comment.author_association)) {
+    if (
+      associations.includes(comment.author_association) &&
+      action !== 'deleted'
+    ) {
+
       /*
       const issueComment = context.issue({
         body: `
@@ -33,6 +37,7 @@ Gostei da sua mensagem: ${comment.body}
         `
       })
       */
+
       const repo = repository.full_name.split('/');
       let issues = await context.github.issues.listForRepo({
         owner: repo[0], repo: repo[1]
@@ -40,7 +45,7 @@ Gostei da sua mensagem: ${comment.body}
       issues = issues.data.reduce((prev, issue) => (
         prev + `id: ${issue.number}, title: ${issue.title}\n`
       ), '')
-      app.log.info(issues);
+      app.log.info(comment.body);
 
       return context.github.issues.createComment(
         context.issue({
