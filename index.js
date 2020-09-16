@@ -53,7 +53,7 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
         let files = await context.github.repos.getContent({
           ...repoData, path: 'src/guide'
         })
-        files = files.data.map(file => file.path.split('src/')[1]).slice(0, 4)
+        files = files.data.map(file => file.path.split('src/')[1]).slice(0, 6)
         let createdIssues = 0
 
         for (let file of files) {
