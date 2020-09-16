@@ -26,9 +26,8 @@ Recomendo a leitura de nosso guia de conduta e seja bem vindo :)
 
     if (
       associations.includes(comment.author_association) &&
-      action !== 'deleted'
+      action === 'created'
     ) {
-
       /*
       const issueComment = context.issue({
         body: `
@@ -38,20 +37,27 @@ Gostei da sua mensagem: ${comment.body}
       })
       */
 
-      const repo = repository.full_name.split('/');
-      let issues = await context.github.issues.listForRepo({
-        owner: repo[0], repo: repo[1]
-      })
-      issues = issues.data.reduce((prev, issue) => (
-        prev + `id: ${issue.number}, title: ${issue.title}\n`
-      ), '')
-      app.log.info(comment.body);
-
-      return context.github.issues.createComment(
-        context.issue({
-          body: 'Aqui está a lista de issues: \n' + issues
+      if (comment.body.includes('/ListaIssues')) {
+        const repo = repository.full_name.split('/');
+        let issues = await context.github.issues.listForRepo({
+          owner: repo[0], repo: repo[1]
         })
-      )
+        issues = issues.data.reduce((prev, issue) => (
+          prev + `id: ${issue.number}, title: ${issue.title}\n`
+        ), '')
+        let files = await context.github.repos.getContents({
+          owner: repo[0], repo: repo[1],
+          path: 'src/guide'
+        })
+        files = files.map(file => file.path)
+        app.log.info(files);
+
+        return context.github.issues.createComment(
+          context.issue({
+            body: 'Aqui está a lista de issues: \n' + issues
+          })
+        )
+      }
     }
   })
 }
