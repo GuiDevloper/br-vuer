@@ -13,8 +13,7 @@ module.exports = app => {
         body: `
 Olá @${user.login}!
 Agradecemos por ter aberto esta issue!
-Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
-        `
+Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
       })
       return context.github.issues.createComment(issueComment)
     }
@@ -55,6 +54,7 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
           ...repoData, path: 'src/guide'
         })
         files = files.data.map(file => file.path.split('src/')[1]).slice(0, 4)
+        let createdIssues = 0
 
         for (let file of files) {
           const hasIssue = issues.find(issue => issue.title.includes(file))
@@ -63,17 +63,17 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
               ...repoData,
               title: `Traduzir "${file}"`,
               labels: ['documentation', 'help wanted'],
-              body: `Link para arquivo: [${file.split('.md')[0]}](https://github.com/${repo[0]}/${repo[1]}/blob/master/src/${file})`
+              body: `Link para o arquivo: [${file.split('.md')[0]}](https://github.com/${repo[0]}/${repo[1]}/blob/master/src/${file})`
             })
+            ++createdIssues
           }
         }
-        app.log.info(files)
 
         return context.github.issues.createComment(
           context.issue({
-            body: 'Aqui está a lista de issues: \n' + issues.map(v => (
-              `id: ${v.id}, title: ${v.title}`
-            )).join('\n')
+            body: `
+Opa chefia, analisando arquivos e _issues_ já criadas gerei ${createdIssues} _issues_ dessa vez!
+Qualquer coisa só chamar :)`
           })
         )
       }
