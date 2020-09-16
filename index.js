@@ -52,7 +52,7 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
         app.log.info(path)
 
         let files = await context.github.repos.getContent({
-          ...repoData, path
+          ...repoData, path: 'src/guide'
         })
         files = files.data.map(file => file.path.split('src/')[1])[0]
 
