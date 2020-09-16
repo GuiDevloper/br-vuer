@@ -49,7 +49,7 @@ Gostei da sua mensagem: ${comment.body}
           owner: repo[0], repo: repo[1],
           path: 'src/guide'
         })
-        files = files.map(file => file.path)
+        files = files.data.map(file => file.path)
         app.log.info(files);
 
         return context.github.issues.createComment(
