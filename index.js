@@ -45,7 +45,7 @@ Gostei da sua mensagem: ${comment.body}
         issues = issues.data.reduce((prev, issue) => (
           prev + `id: ${issue.number}, title: ${issue.title}\n`
         ), '')
-        let files = await context.github.repos.getContents({
+        let files = await context.github.repos.getContent({
           owner: repo[0], repo: repo[1],
           path: 'src/guide'
         })
