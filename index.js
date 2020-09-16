@@ -50,7 +50,7 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
           .split(' ')[1]
         let files = await context.github.repos.getContent({
           ...repoData,
-          path: 'src/' + (path || 'guide')
+          path: `src/${path || 'guide'}`
         })
         files = files.data.map(file => file.path.split('src/')[1])[0]
         for (let file of files) {
