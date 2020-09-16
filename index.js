@@ -25,12 +25,14 @@ Recomendo a leitura de nosso guia de conduta e bem vindo :)
     ]
 
     if (associations.includes(comment.author_association)) {
+      /*
       const issueComment = context.issue({
         body: `
 Olá @${comment.user.login}, ${comment.author_association} de [${repository.full_name}](${repository.html_url})
 Gostei da sua mensagem: ${comment.body}
         `
       })
+      */
       const repo = repository.full_name.split('/');
       let issues = await context.github.issues.listForRepo({
         owner: repo[0], repo: repo[1]
@@ -41,7 +43,9 @@ Gostei da sua mensagem: ${comment.body}
       app.log.info(issues);
 
       return context.github.issues.createComment(
-        'Aqui está a lista de issues: \n' + issues
+        context.issue({
+          body: 'Aqui está a lista de issues: \n' + issues
+        })
       )
     }
   })
