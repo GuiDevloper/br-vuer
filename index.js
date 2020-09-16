@@ -3,17 +3,21 @@
  * @param {import('probot').Application} app
  */
 module.exports = app => {
-  // Your code here
-  app.log.info('Yay, the app was loaded!')
-
   app.on('issues.opened', async context => {
-    const issueComment = context.issue({
-      body: `
+    const { user, author_association } = context.payload.issue
+    if (user.login !== 'br-vuer[bot]' &&
+      user.type !== 'Bot' &&
+      author_association.includes('FIRST_TIME')
+    ) {
+      const issueComment = context.issue({
+        body: `
+Olá @${user.login}!
 Agradecemos por ter aberto esta issue!
-Recomendo a leitura de nosso guia de conduta e seja bem vindo :)
-      `
-    })
-    return context.github.issues.createComment(issueComment)
+Recomendo a leitura dos guias de contribuição e dou as boas vindas :)
+        `
+      })
+      return context.github.issues.createComment(issueComment)
+    }
   })
 
   app.on('issue_comment', async context => {
@@ -28,18 +32,11 @@ Recomendo a leitura de nosso guia de conduta e seja bem vindo :)
       associations.includes(comment.author_association) &&
       action === 'created'
     ) {
-      /*
-      const issueComment = context.issue({
-        body: `
-Olá @${comment.user.login}, ${comment.author_association} de [${repository.full_name}](${repository.html_url})
-Gostei da sua mensagem: ${comment.body}
-        `
-      })
-      */
 
       if (comment.body.includes('/CriaIssues')) {
         const repo = repository.full_name.split('/');
         const repoData = { owner: repo[0], repo: repo[1] }
+
         let issues = await context.github.issues.listForRepo({
           owner: repo[0], repo: repo[1]
         })
@@ -53,7 +50,7 @@ Gostei da sua mensagem: ${comment.body}
           ...repoData,
           path: 'src/' + (path || 'guide')
         })
-        files = files.data.map(file => file.path.split('src/')[1]).slice(0, 2)
+        files = files.data.map(file => file.path.split('src/')[1])[0]
         for (let file of files) {
           const hasIssue = issues.find(issue => issue.title.includes(file))
           if (!hasIssue) {
@@ -69,7 +66,9 @@ Gostei da sua mensagem: ${comment.body}
 
         return context.github.issues.createComment(
           context.issue({
-            body: 'Aqui está a lista de issues: \n' + issues
+            body: 'Aqui está a lista de issues: \n' + issues.map(v => (
+              `id: ${v.id}, title: ${v.title}`
+            )).join('\n')
           })
         )
       }

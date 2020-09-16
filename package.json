@@ -14,16 +14,11 @@
     "probot-app"
   ],
   "scripts": {
-    "start": "probot run ./index.js",
-    "test": "jest"
+    "start": "probot run ./index.js"
   },
   "dependencies": {
     "probot": "^10.2.0",
     "smee-client": "^1.1.0"
-  },
-  "devDependencies": {
-    "jest": "^26.4.0",
-    "nock": "^13.0.4"
   },
   "engines": {
     "node": ">= 10.13.0"
