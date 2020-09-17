@@ -24,7 +24,7 @@ const createIssue = async (context, repoData, file) => {
   })
 }
 
-export const criaIssues = async (context, repository) => {
+exports.criaIssues = async (context, repository) => {
   const repo = repository.full_name.split('/');
   const repoData = { owner: repo[0], repo: repo[1] }
 
@@ -56,7 +56,7 @@ Qualquer coisa só chamar :)`
   )
 }
 
-export const respondFirstTimer = async context => {
+exports.respondFirstTimer = async context => {
   const { user, author_association } = context.payload.issue
   if (user.login !== 'br-vuer[bot]' &&
     user.type !== 'Bot' &&
