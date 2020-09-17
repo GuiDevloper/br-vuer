@@ -61,10 +61,12 @@ exports.criaIssues = async (context, repository) => {
     }
   }
 
+  const path = getPath(context).path
+
   return context.github.issues.createComment(
     context.issue({
       body: `
-Opa chefia, analisando arquivos e _issues_ já criadas sobre [guide](https://github.com/${repo[0]}/${repo[1]}/tree/master/src/guide), gerei ${createdIssues} _issues_ dessa vez!
+Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repo[0]}/${repo[1]}/tree/master/${path}), gerei ${createdIssues} _issues_ dessa vez!
 Qualquer coisa só chamar :)`
     })
   )
