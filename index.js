@@ -1,4 +1,4 @@
-const { CriaIssues, respondFirstTimer } = require('./modules')
+const { criaIssues, respondFirstTimer } = require('./modules')
 
 /**
  * This is the main entrypoint to your Probot app
@@ -20,7 +20,7 @@ module.exports = app => {
       action === 'created'
     ) {
       if (comment.body.toLowerCase().includes('/criaissues')) {
-        CriaIssues(context, repository)
+        criaIssues(context, repository)
       }
     }
   })
