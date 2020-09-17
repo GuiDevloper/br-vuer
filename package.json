@@ -1,13 +1,13 @@
 {
-  "name": "vuer",
+  "name": "br-vuer",
   "version": "1.0.0",
   "private": true,
   "description": "A brazilian helper bot for vuejs-br community",
   "author": "Guilherme Correia <guicorrea384@gmail.com>",
   "license": "ISC",
-  "repository": "https://github.com/GuiDevloper/vuer.git",
-  "homepage": "https://github.com/GuiDevloper/vuer",
-  "bugs": "https://github.com/GuiDevloper/vuer/issues",
+  "repository": "https://github.com/GuiDevloper/br-vuer.git",
+  "homepage": "https://github.com/GuiDevloper/br-vuer",
+  "bugs": "https://github.com/GuiDevloper/br-vuer/issues",
   "keywords": [
     "probot",
     "github",
