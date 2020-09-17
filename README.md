@@ -1,23 +1,21 @@
-# vuer
+# Vuer
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that A brazilian helper bot for vuejs-br community
+> A brazilian helper bot for vuejs-br community and GitHub App built with [Probot](https://github.com/probot/probot)
 
 ## Setup
 
 ```sh
 # Install dependencies
-npm install
+yarn install
 
 # Run the bot
-npm start
+yarn start
 ```
 
 ## Contributing
 
-If you have suggestions for how vuer could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
-
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
+If you have suggestions for how Vuer could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
 
 ## License
 
-[ISC](LICENSE) © 2020 Guilherme Correia <guicorrea384@gmail.com>
+[ISC](LICENSE) © 2020 Guilherme Correia
