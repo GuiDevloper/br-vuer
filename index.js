@@ -1,4 +1,4 @@
-import { CriaIssues, respondFirstTimer } from './modules'
+const { CriaIssues, respondFirstTimer } = require('./modules')
 
 /**
  * This is the main entrypoint to your Probot app
