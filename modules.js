@@ -1,3 +1,5 @@
+const { paths } = require('./enums')
+
 const getIssues = async (context, repoData) => {
   let issues = await context.github.issues.listForRepo(repoData)
   issues = issues.data.reduce((prev, issue) => ([
@@ -8,10 +10,15 @@ const getIssues = async (context, repoData) => {
 }
 
 const getFiles = async (context, repoData) => {
+  let path = getPath(context)
   let files = await context.github.repos.getContent({
-    ...repoData, path: 'src/guide'
+    ...repoData, ...path
   })
-  files = files.data.map(file => file.path.split('src/')[1])
+  files = files.data
+    .map(file => file.path.split('src/')[1])
+    .filter(filename => filename.endsWith('.md'))
+    .splice(0, 4) // limit for tests
+
   return files
 }
 
@@ -24,17 +31,24 @@ const createIssue = async (context, repoData, file) => {
   })
 }
 
+const getPath = (context) => {
+  const { comment } = context.payload
+  const path = comment.body.split('/CriaIssues')[1]
+    .replace('\n', ' ')
+    .split(' ')[1]
+
+  if (path && paths.hasOwnProperty(path)) {
+    return paths[path]
+  } else {
+    return { path: 'src/guide' }
+  }
+}
+
 exports.criaIssues = async (context, repository) => {
   const repo = repository.full_name.split('/');
   const repoData = { owner: repo[0], repo: repo[1] }
 
   let issues = await getIssues(context, repoData)
-
-  /* TODO: accept dynamic path args
-  let path = comment.body.split('/CriaIssues')[1]
-    .replace('\n', ' ')
-    .split(' ')[1]
-  */
 
   let files = await getFiles(context, repoData)
   let createdIssues = 0

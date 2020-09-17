@@ -1,4 +1,5 @@
 const { criaIssues, respondFirstTimer } = require('./modules')
+const { associations } = require('./enums')
 
 /**
  * This is the main entrypoint to your Probot app
@@ -9,11 +10,6 @@ module.exports = app => {
 
   app.on('issue_comment', async context => {
     const { action, comment, repository } = context.payload
-    const associations = [
-      'OWNER',
-      'MEMBER',
-      'COLLABORATOR'
-    ]
 
     if (
       associations.includes(comment.author_association) &&
