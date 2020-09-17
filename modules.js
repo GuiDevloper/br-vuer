@@ -11,7 +11,7 @@ const getFiles = async (context, repoData) => {
   let files = await context.github.repos.getContent({
     ...repoData, path: 'src/guide'
   })
-  files = files.data.map(file => file.path.split('src/')[1]).slice(0, 8)
+  files = files.data.map(file => file.path.split('src/')[1])
   return files
 }
 
