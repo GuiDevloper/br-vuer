@@ -1,7 +1,10 @@
 const { paths } = require('./enums')
 
-const getIssues = async (context, repoData) => {
-  let issues = await context.github.issues.listForRepo(repoData)
+const getIssues = async (context, repoData, page) => {
+  let issues = await context.github.issues.listForRepo({
+    ...repoData,
+    per_page: 100, page
+  })
   issues = issues.data.reduce((prev, issue) => ([
     ...prev,
     { id: issue.number, title: issue.title }
@@ -48,7 +51,13 @@ exports.criaIssues = async (context, repository) => {
   const repo = repository.full_name.split('/');
   const repoData = { owner: repo[0], repo: repo[1] }
 
-  let issues = await getIssues(context, repoData)
+  let issues = await getIssues(context, repoData, 1)
+
+  // get possible second page of 100 issues
+  let moreIssues = await getIssues(context, repoData, 2)
+  if (moreIssues.length > 0) {
+    issues = [...issues, ...moreIssues]
+  }
 
   let files = await getFiles(context, repoData)
   let createdIssues = 0
