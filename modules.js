@@ -1,4 +1,4 @@
-const { paths } = require('./enums')
+const { paths, deleteIssueMutation } = require('./enums')
 
 const getIssues = async (context, repoData, page) => {
   let issues = await context.github.issues.listForRepo({
@@ -9,6 +9,17 @@ const getIssues = async (context, repoData, page) => {
     ...prev,
     { id: issue.number, title: issue.title }
   ]), [])
+  return issues
+}
+
+const getAllIssues = async (context, repoData) => {
+  let issues = await getIssues(context, repoData, 1)
+
+  // get possible second page of 100 issues
+  let moreIssues = await getIssues(context, repoData, 2)
+  if (moreIssues.length > 0) {
+    issues = [...issues, ...moreIssues]
+  }
   return issues
 }
 
@@ -34,11 +45,17 @@ const createIssue = async (context, repoData, file) => {
   })
 }
 
-const getPath = (context) => {
+const getCommentArg = (context, fnName) => {
   const { comment } = context.payload
-  const path = comment.body.split('/CriaIssues')[1]
+  return comment.body
+    .toLowerCase()
+    .split(fnName)[1]
     .replace('\n', ' ')
     .split(' ')[1]
+}
+
+const getPath = (context) => {
+  const path = getCommentArg(context, '/criaissues')
 
   if (path && paths.hasOwnProperty(path)) {
     return paths[path]
@@ -47,17 +64,21 @@ const getPath = (context) => {
   }
 }
 
+const getRepoData = (repository) => {
+  const repo = repository.full_name.split('/')
+  return { owner: repo[0], repo: repo[1] }
+}
+
+const createComment = (context, body) => {
+  return context.github.issues.createComment(
+    context.issue({ body })
+  )
+}
+
 exports.criaIssues = async (context, repository) => {
-  const repo = repository.full_name.split('/');
-  const repoData = { owner: repo[0], repo: repo[1] }
+  const repoData = getRepoData(repository)
 
-  let issues = await getIssues(context, repoData, 1)
-
-  // get possible second page of 100 issues
-  let moreIssues = await getIssues(context, repoData, 2)
-  if (moreIssues.length > 0) {
-    issues = [...issues, ...moreIssues]
-  }
+  let issues = await getAllIssues(context, repoData)
 
   let files = await getFiles(context, repoData)
   let createdIssues = 0
@@ -72,12 +93,9 @@ exports.criaIssues = async (context, repository) => {
 
   const path = getPath(context).path
 
-  return context.github.issues.createComment(
-    context.issue({
-      body: `
+  return createComment(context, `
 Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repo[0]}/${repo[1]}/tree/master/${path}), gerei ${createdIssues} _issues_ dessa vez!
 Qualquer coisa só chamar :)`
-    })
   )
 }
 
@@ -87,12 +105,35 @@ exports.respondFirstTimer = async context => {
     user.type !== 'Bot' &&
     author_association.includes('FIRST_TIME')
   ) {
-    const issueComment = context.issue({
-      body: `
+    return createComment(context, `
 Olá @${user.login}!
 Agradecemos por ter aberto esta issue!
 Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
-    })
-    return context.github.issues.createComment(issueComment)
+    )
   }
+}
+
+exports.deleteIssues = async (context, repository) => {
+  const repoData = getRepoData(repository)
+
+  const arg = getCommentArg(context, '/deleteissues')
+  if (!arg) return true
+
+  let issues = await getAllIssues(context, repoData)
+  let deletedIssues = 0
+
+  for (let issue of issues) {
+    if (issue.title.includes(`${arg}/`)) {
+      await context.github.graphql(deleteIssueMutation, {
+        issueId: issue.node_id
+      })
+      ++deletedIssues
+    }
+    if (deletedIssues > 3) break
+  }
+
+  return createComment(context, `
+Ô meu array, analisando _issues_ sobre ${arg}, removi ${deletedIssues} _issues_!
+Qualquer coisa só chamar :)`
+  )
 }

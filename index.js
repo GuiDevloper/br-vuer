@@ -1,4 +1,8 @@
-const { criaIssues, respondFirstTimer } = require('./modules')
+const {
+  criaIssues,
+  respondFirstTimer,
+  deleteIssues
+} = require('./modules')
 const { associations } = require('./enums')
 
 /**
@@ -15,8 +19,14 @@ module.exports = app => {
       associations.includes(comment.author_association) &&
       action === 'created'
     ) {
-      if (comment.body.toLowerCase().includes('/criaissues')) {
+      const body = comment.body.toLowerCase()
+
+      if (body.includes('/criaissues')) {
         criaIssues(context, repository)
+      }
+
+      if (body.includes('/deleteissues')) {
+        deleteIssues(context, repository)
       }
     }
   })

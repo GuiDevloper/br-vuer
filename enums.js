@@ -16,3 +16,12 @@ exports.paths = {
   'style-guide': { path: 'src/style-guide' },
   'support-vuejs': { path: 'src/support-vuejs' }
 }
+
+// GraphQL mutation to delete a issue
+exports.deleteIssueMutation = `
+  mutation deleteIssue($input: DeleteIssueInput!) {
+    deleteIssue(input: $input) {
+      clientMutationId
+    }
+  }
+`;
