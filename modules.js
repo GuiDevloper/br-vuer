@@ -125,7 +125,9 @@ exports.deleteIssues = async (context, repository) => {
   for (let issue of issues) {
     if (issue.title.includes(`${arg}/`)) {
       await context.github.graphql(deleteIssueMutation, {
-        issueId: issue.node_id
+        input: {
+          issueId: issue.node_id
+        }
       })
       ++deletedIssues
     }
