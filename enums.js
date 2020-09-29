@@ -31,7 +31,7 @@ exports.criaIssuesMessage = (
 ) => {
   const repoUrl = `[${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path})`
 
-  const projectUrl = column
+  const projectUrl = project
     ? ` e adicionei em [seu project](https://github.com/${repoData.owner}/${repoData.repo}/projects/${project.number})`
     : ''
 
