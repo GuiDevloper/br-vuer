@@ -7,7 +7,11 @@ const getIssues = async (context, repoData, page) => {
   })
   issues = issues.data.reduce((prev, issue) => ([
     ...prev,
-    { id: issue.number, title: issue.title }
+    {
+      id: issue.id,
+      title: issue.title,
+      node_id: issue.node_id
+    }
   ]), [])
   return issues
 }
@@ -83,18 +87,42 @@ exports.criaIssues = async (context, repository) => {
   let files = await getFiles(context, repoData)
   let createdIssues = 0
 
+  const arg = getCommentArg(context, '/criaissues')
+  const project = (await context.github.projects.listForRepo({
+    ...repoData,
+    state: 'open'
+  }))
+  .map(p => ({ id: p.id, title: p.name }))
+  .find(p => p.name === `Traduzir "${arg}"`)
+
+  let column = null
+  if (project) {
+    column = (await context.github.projects.listColumns({
+      project_id: project.id
+    }))
+    .map(c => ({ id: c.id, title: c.name }))
+    .find(c => c.name === 'To do')
+  }
+
   for (let file of files) {
     const hasIssue = issues.find(issue => issue.title.includes(file))
     if (!hasIssue) {
       await createIssue(context, repoData, file)
       ++createdIssues
+      if (column) {
+        await context.github.projects.createCard({
+          column_id: column.id,
+          content_id: hasIssue.id,
+          content_type: 'Issue'
+        })
+      }
     }
   }
 
   const path = getPath(context).path
 
   return createComment(context, `
-Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repo[0]}/${repo[1]}/tree/master/${path}), gerei ${createdIssues} _issues_ dessa vez!
+Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repo[0]}/${repo[1]}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ' e adicionei em seu project' : ''}!
 Qualquer coisa só chamar :)`
   )
 }
