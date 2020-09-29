@@ -35,7 +35,7 @@ const getFiles = async (context, repoData) => {
   files = files.data
     .map(file => file.path.split('src/')[1])
     .filter(filename => filename.endsWith('.md'))
-    .splice(0, 4) // limit for tests
+    .splice(0, 2) // limit for tests
 
   return files
 }
@@ -88,20 +88,24 @@ exports.criaIssues = async (context, repository) => {
   let createdIssues = 0
 
   const arg = getCommentArg(context, '/criaissues')
-  const project = (await context.github.projects.listForRepo({
+  let project = await context.github.projects.listForRepo({
     ...repoData,
     state: 'open'
-  }))
-  .map(p => ({ id: p.id, title: p.name }))
-  .find(p => p.name === `Traduzir "${arg}"`)
+  })
+  console.log(project)
+  project = project
+    .map(p => ({ id: p.id, title: p.name }))
+    .find(p => p.name === `Traduzir "${arg}"`)
 
   let column = null
   if (project) {
-    column = (await context.github.projects.listColumns({
+    column = await context.github.projects.listColumns({
       project_id: project.id
-    }))
-    .map(c => ({ id: c.id, title: c.name }))
-    .find(c => c.name === 'To do')
+    })
+    console.log(column)
+    column = column
+      .map(c => ({ id: c.id, title: c.name }))
+      .find(c => c.name === 'To do')
   }
 
   for (let file of files) {
