@@ -87,14 +87,14 @@ exports.criaIssues = async (context, repository) => {
   let files = await getFiles(context, repoData)
   let createdIssues = 0
 
-  const arg = getCommentArg(context, '/criaissues')
+  const { path } = getPath(context)
   let project = await context.github.projects.listForRepo({
     ...repoData,
     state: 'open'
   })
   project = project.data
     .map(p => ({ id: p.id, name: p.name }))
-    .find(p => p.name === `Traduzir "${arg}"`)
+    .find(p => p.name === `Traduzir "${path.replace('src/', '')}"`)
   console.log(project)
 
   let column = null
@@ -123,8 +123,6 @@ exports.criaIssues = async (context, repository) => {
       }
     }
   }
-
-  const path = getPath(context).path
 
   return createComment(context, `
 Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ' e adicionei em seu project' : ''}!
