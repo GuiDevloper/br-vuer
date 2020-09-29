@@ -1,4 +1,8 @@
-const { paths, deleteIssueMutation } = require('./enums')
+const {
+  paths,
+  deleteIssueMutation,
+  criaIssuesMessage
+} = require('./enums')
 
 const getIssues = async (context, repoData, page) => {
   let issues = await context.github.issues.listForRepo({
@@ -35,7 +39,7 @@ const getFiles = async (context, repoData) => {
   files = files.data
     .map(file => file.path.split('src/')[1])
     .filter(filename => filename.endsWith('.md'))
-    .splice(0, 2) // limit for tests
+    // .splice(0, 2) // limit for tests
 
   return files
 }
@@ -132,9 +136,8 @@ exports.criaIssues = async (context, repository) => {
 
   const { path } = getPath(context)
 
-  return createComment(context, `
-Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ` e adicionei em [seu project](https://github.com/${repoData.owner}/${repoData.repo}/projects/${project.number})` : ''}!
-Qualquer coisa só chamar :)`
+  return createComment(context,
+    criaIssuesMessage(path, repoData, project, createdIssues)
   )
 }
 

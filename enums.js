@@ -25,3 +25,17 @@ exports.deleteIssueMutation = `
     }
   }
 `;
+
+exports.criaIssuesMessage = (
+  path, repoData, project, createdIssues
+) => {
+  const repoUrl = `[${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path})`
+
+  const projectUrl = column
+    ? ` e adicionei em [seu project](https://github.com/${repoData.owner}/${repoData.repo}/projects/${project.number})`
+    : ''
+
+  return `
+Opa chefia, analisando arquivos e _issues_ já criadas sobre ${repoUrl}, gerei ${createdIssues} _issues_${projectUrl}!
+Qualquer coisa só chamar :)`
+}
