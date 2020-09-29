@@ -111,12 +111,13 @@ exports.criaIssues = async (context, repository) => {
   for (let file of files) {
     const hasIssue = issues.find(issue => issue.title.includes(file))
     if (!hasIssue) {
-      await createIssue(context, repoData, file)
+      const issue = await createIssue(context, repoData, file)
+      console.log(issue)
       ++createdIssues
       if (column) {
         await context.github.projects.createCard({
           column_id: column.id,
-          content_id: hasIssue.id,
+          content_id: issue.data.id,
           content_type: 'Issue'
         })
       }
