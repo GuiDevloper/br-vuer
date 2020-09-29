@@ -92,8 +92,8 @@ exports.criaIssues = async (context, repository) => {
     ...repoData,
     state: 'open'
   })
-  console.log(project)
-  project = project
+  console.log(project.data)
+  project = project.data
     .map(p => ({ id: p.id, title: p.name }))
     .find(p => p.name === `Traduzir "${arg}"`)
 
@@ -102,8 +102,8 @@ exports.criaIssues = async (context, repository) => {
     column = await context.github.projects.listColumns({
       project_id: project.id
     })
-    console.log(column)
-    column = column
+    console.log(column.data)
+    column = column.data
       .map(c => ({ id: c.id, title: c.name }))
       .find(c => c.name === 'To do')
   }
