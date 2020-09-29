@@ -79,6 +79,37 @@ const createComment = (context, body) => {
   )
 }
 
+const getProject = async (context, repoData) => {
+  const { path } = getPath(context)
+  let project = await context.github.projects.listForRepo({
+    ...repoData,
+    state: 'open'
+  })
+  return project.data
+    .find(p => {
+      return p.name === `Traduzir "${path.replace('src/', '')}"`
+    })
+}
+
+const getProjectColumn = async (context, project) => {
+  if (project) {
+    let column = await context.github.projects.listColumns({
+      project_id: project.id
+    })
+    return column.data.find(c => c.name === 'To do')
+  }
+}
+
+const createProjectCard = async (context, column, issue) => {
+  if (column) {
+    return context.github.projects.createCard({
+      column_id: column.id,
+      content_id: issue.id,
+      content_type: 'Issue'
+    })
+  }
+}
+
 exports.criaIssues = async (context, repository) => {
   const repoData = getRepoData(repository)
 
@@ -87,45 +118,22 @@ exports.criaIssues = async (context, repository) => {
   let files = await getFiles(context, repoData)
   let createdIssues = 0
 
-  const { path } = getPath(context)
-  let project = await context.github.projects.listForRepo({
-    ...repoData,
-    state: 'open'
-  })
-  project = project.data
-    .map(p => ({ id: p.id, name: p.name }))
-    .find(p => p.name === `Traduzir "${path.replace('src/', '')}"`)
-  console.log(project)
-
-  let column = null
-  if (project) {
-    column = await context.github.projects.listColumns({
-      project_id: project.id
-    })
-    column = column.data
-      .map(c => ({ id: c.id, name: c.name }))
-      .find(c => c.name === 'To do')
-    console.log(column)
-  }
+  let project = await getProject(context, repoData)
+  let column = await getProjectColumn(context, project)
 
   for (let file of files) {
     const hasIssue = issues.find(issue => issue.title.includes(file))
     if (!hasIssue) {
-      const issue = await createIssue(context, repoData, file)
-      console.log(issue)
+      const issue = (await createIssue(context, repoData, file)).data
       ++createdIssues
-      if (column) {
-        await context.github.projects.createCard({
-          column_id: column.id,
-          content_id: issue.data.id,
-          content_type: 'Issue'
-        })
-      }
+      await createProjectCard(context, column, issue)
     }
   }
 
+  const { path } = getPath(context)
+
   return createComment(context, `
-Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ' e adicionei em seu project' : ''}!
+Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ` e adicionei em [seu project](https://github.com/${repoData.owner}/${repoData.repo}/projects/${project.number})` : ''}!
 Qualquer coisa só chamar :)`
   )
 }
