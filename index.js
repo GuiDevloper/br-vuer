@@ -26,7 +26,7 @@ module.exports = app => {
       }
 
       if (body.includes('/deleteissues')) {
-        deleteIssues(context, repository)
+        // deleteIssues(context, repository)
       }
     }
   })

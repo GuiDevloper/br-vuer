@@ -92,20 +92,20 @@ exports.criaIssues = async (context, repository) => {
     ...repoData,
     state: 'open'
   })
-  console.log(project.data)
   project = project.data
-    .map(p => ({ id: p.id, title: p.name }))
+    .map(p => ({ id: p.id, name: p.name }))
     .find(p => p.name === `Traduzir "${arg}"`)
+  console.log(project)
 
   let column = null
   if (project) {
     column = await context.github.projects.listColumns({
       project_id: project.id
     })
-    console.log(column.data)
     column = column.data
-      .map(c => ({ id: c.id, title: c.name }))
+      .map(c => ({ id: c.id, name: c.name }))
       .find(c => c.name === 'To do')
+    console.log(column)
   }
 
   for (let file of files) {
@@ -126,7 +126,7 @@ exports.criaIssues = async (context, repository) => {
   const path = getPath(context).path
 
   return createComment(context, `
-Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repo[0]}/${repo[1]}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ' e adicionei em seu project' : ''}!
+Opa chefia, analisando arquivos e _issues_ já criadas sobre [${path}](https://github.com/${repoData.owner}/${repoData.repo}/tree/master/${path}), gerei ${createdIssues} _issues_${column ? ' e adicionei em seu project' : ''}!
 Qualquer coisa só chamar :)`
   )
 }
@@ -145,6 +145,7 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
   }
 }
 
+// FIXME: 'Viewer not authorized to delete'
 exports.deleteIssues = async (context, repository) => {
   const repoData = getRepoData(repository)
 
