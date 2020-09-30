@@ -7,6 +7,7 @@ const {
 const getIssues = async (context, repoData, page) => {
   let issues = await context.github.issues.listForRepo({
     ...repoData,
+    state: 'all',
     per_page: 100, page
   })
   issues = issues.data.reduce((prev, issue) => ([
