@@ -22,7 +22,7 @@ module.exports = app => {
       const body = comment.body.toLowerCase()
 
       if (body.includes('/criaissues')) {
-        criaIssues(context, repository)
+        await criaIssues(context, repository)
       }
 
       if (body.includes('/deleteissues')) {

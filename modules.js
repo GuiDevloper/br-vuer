@@ -4,7 +4,10 @@ const {
   criaIssuesMessage
 } = require('./enums')
 
-const getIssues = async (context, repoData, page) => {
+// subModules object
+const $s  = {}
+
+$s.getIssues = async (context, repoData, page) => {
   let issues = await context.github.issues.listForRepo({
     ...repoData,
     state: 'all',
@@ -21,19 +24,19 @@ const getIssues = async (context, repoData, page) => {
   return issues
 }
 
-const getAllIssues = async (context, repoData) => {
-  let issues = await getIssues(context, repoData, 1)
+$s.getAllIssues = async (context, repoData) => {
+  let issues = await $s.getIssues(context, repoData, 1)
 
   // get possible second page of 100 issues
-  let moreIssues = await getIssues(context, repoData, 2)
+  let moreIssues = await $s.getIssues(context, repoData, 2)
   if (moreIssues.length > 0) {
     issues = [...issues, ...moreIssues]
   }
   return issues
 }
 
-const getFiles = async (context, repoData) => {
-  let path = getPath(context)
+$s.getFiles = async (context, repoData) => {
+  let path = $s.getPath(context)
   let files = await context.github.repos.getContent({
     ...repoData, ...path
   })
@@ -45,7 +48,7 @@ const getFiles = async (context, repoData) => {
   return files
 }
 
-const createIssue = async (context, repoData, file) => {
+$s.createIssue = async (context, repoData, file) => {
   return context.github.issues.create({
     ...repoData,
     title: `Traduzir "${file}"`,
@@ -54,7 +57,7 @@ const createIssue = async (context, repoData, file) => {
   })
 }
 
-const getCommentArg = (context, fnName) => {
+$s.getCommentArg = (context, fnName) => {
   const { comment } = context.payload
   return comment.body
     .toLowerCase()
@@ -63,8 +66,8 @@ const getCommentArg = (context, fnName) => {
     .split(' ')[1]
 }
 
-const getPath = (context) => {
-  const path = getCommentArg(context, '/criaissues')
+$s.getPath = (context) => {
+  const path = $s.getCommentArg(context, '/criaissues')
 
   if (path && paths.hasOwnProperty(path)) {
     return paths[path]
@@ -73,19 +76,19 @@ const getPath = (context) => {
   }
 }
 
-const getRepoData = (repository) => {
+$s.getRepoData = (repository) => {
   const repo = repository.full_name.split('/')
   return { owner: repo[0], repo: repo[1] }
 }
 
-const createComment = (context, body) => {
+$s.createComment = (context, body) => {
   return context.github.issues.createComment(
     context.issue({ body })
   )
 }
 
-const getProject = async (context, repoData) => {
-  const { path } = getPath(context)
+$s.getProject = async (context, repoData) => {
+  const { path } = $s.getPath(context)
   let project = await context.github.projects.listForRepo({
     ...repoData,
     state: 'open'
@@ -96,7 +99,7 @@ const getProject = async (context, repoData) => {
     })
 }
 
-const getProjectColumn = async (context, project) => {
+$s.getProjectColumn = async (context, project) => {
   if (project) {
     let column = await context.github.projects.listColumns({
       project_id: project.id
@@ -105,7 +108,7 @@ const getProjectColumn = async (context, project) => {
   }
 }
 
-const createProjectCard = async (context, column, issue) => {
+$s.createProjectCard = async (context, column, issue) => {
   if (column) {
     return context.github.projects.createCard({
       column_id: column.id,
@@ -115,40 +118,40 @@ const createProjectCard = async (context, column, issue) => {
   }
 }
 
-exports.criaIssues = async (context, repository) => {
-  const repoData = getRepoData(repository)
+const criaIssues = async (context, repository) => {
+  const repoData = $s.getRepoData(repository)
 
-  let issues = await getAllIssues(context, repoData)
+  let issues = await $s.getAllIssues(context, repoData)
 
-  let files = await getFiles(context, repoData)
+  let files = await $s.getFiles(context, repoData)
   let createdIssues = 0
 
-  let project = await getProject(context, repoData)
-  let column = await getProjectColumn(context, project)
+  let project = await $s.getProject(context, repoData)
+  let column = await $s.getProjectColumn(context, project)
 
   for (let file of files) {
     const hasIssue = issues.find(issue => issue.title.includes(file))
     if (!hasIssue) {
-      const issue = (await createIssue(context, repoData, file)).data
+      const issue = (await $s.createIssue(context, repoData, file)).data
       ++createdIssues
-      await createProjectCard(context, column, issue)
+      await $s.createProjectCard(context, column, issue)
     }
   }
 
-  const { path } = getPath(context)
+  const { path } = $s.getPath(context)
 
-  return createComment(context,
+  return $s.createComment(context,
     criaIssuesMessage(path, repoData, project, createdIssues)
   )
 }
 
-exports.respondFirstTimer = async context => {
+const respondFirstTimer = async context => {
   const { user, author_association } = context.payload.issue
   if (user.login !== 'br-vuer[bot]' &&
     user.type !== 'Bot' &&
     author_association.includes('FIRST_TIME')
   ) {
-    return createComment(context, `
+    return $s.createComment(context, `
 Olá @${user.login}!
 Agradecemos por ter aberto esta issue!
 Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
@@ -157,13 +160,13 @@ Recomendo a leitura dos guias de contribuição e dou as boas vindas :)`
 }
 
 // FIXME: 'Viewer not authorized to delete'
-exports.deleteIssues = async (context, repository) => {
-  const repoData = getRepoData(repository)
+const deleteIssues = async (context, repository) => {
+  const repoData = $s.getRepoData(repository)
 
-  const arg = getCommentArg(context, '/deleteissues')
+  const arg = $s.getCommentArg(context, '/deleteissues')
   if (!arg) return true
 
-  let issues = await getAllIssues(context, repoData)
+  let issues = await $s.getAllIssues(context, repoData)
   let deletedIssues = 0
 
   for (let issue of issues) {
@@ -175,11 +178,18 @@ exports.deleteIssues = async (context, repository) => {
       })
       ++deletedIssues
     }
-    if (deletedIssues > 3) break
+    if (deletedIssues > 2) break
   }
 
-  return createComment(context, `
+  return $s.createComment(context, `
 Ô meu array, analisando _issues_ sobre ${arg}, removi ${deletedIssues} _issues_!
 Qualquer coisa só chamar :)`
   )
+}
+
+module.exports = {
+  criaIssues,
+  respondFirstTimer,
+  deleteIssues,
+  subModules: $s
 }

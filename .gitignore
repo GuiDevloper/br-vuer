@@ -3,4 +3,5 @@ npm-debug.log
 *.pem
 !mock-cert.pem
 .env
-coverage
+coverage/*
+!coverage/badge-*
